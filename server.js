@@ -71,7 +71,7 @@ const mqttClient = mqtt.connect(process.env.MQTT_HOST, options)
 
 // Connect MongoDB
 mongoose.connect(process.env.DB_CONNECT_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex:true, useFindAndModify:false})
-    .then((result)=> server.listen(process.env.PORT || 5000, console.log("server running")))
+    .then((result)=> app.listen(process.env.PORT || 5000, console.log("server running")))
     .catch((err)=>{console.log(err)})
 
 const connection = mongoose.connection
@@ -174,7 +174,7 @@ antaresClient.on('message', async (topic, message)=> {
       }
     } 
     console.log((res.type))
-    // // console.log(buffer)
 })
+
 
 
