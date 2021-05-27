@@ -1,0 +1,57 @@
+<% if(!user) { %>
+    <script>
+        alert("Not Authorized : Please Login!")
+        location.assign('/api/user/login')
+    </script>
+<% } else { %> 
+    <%- include('../partials/headerAdmin.ejs') %> 
+    <%- include('../partials/sidebar.ejs') %>
+    <main>
+        <section id="edit-user">
+            <form id="form-signup">
+                <h2>ADD USER</h2>
+                <label for="name">Name</label>
+                <input type="text" name="name" placeholder="Name">
+                <label for="email">Email</label>
+                <input type="email" name="email" placeholder="Email">
+                <label for="birth">Birth</label>
+                <input type="date" name="birth">
+                <label for="password">Password</label>
+                <input type="password" name="password" placeholder="Password">
+                <label for="level">Level</label>
+                <select name="level" id="level">
+                    <option value="petugas">Petugas</option>
+                    <option value="admin">Admin</option>
+                </select>
+                
+                <button>Submit</button>
+            </form>
+        </section>
+    </main>
+    <script>
+        const form = document.getElementById('form-signup')
+        // const e = document.getElementById('level')
+        
+        form.addEventListener('submit', async (e)=>{
+            e.preventDefault()
+            const name = form.name.value
+            const email = form.email.value
+            const birth = form.birth.value
+            const password = form.password.value
+            const level = form.level.value
+
+            const res = await fetch('/api/user/signup', {
+                method: 'POST',
+                body: JSON.stringify({name, email, birth, password, level}),
+                headers: {'Content-Type': 'application/json'}
+            })
+            const data = await res.json()
+            if(data.status == 'success'){
+                location.assign('/api/user/users')
+            }else{
+                alert(data.errors)
+            }
+        })
+
+    </script>
+<% } %> 

@@ -1,0 +1,86 @@
+<% if(!user) { %>
+<script>
+  alert("Not Authorized : Please Login!");
+  location.assign("/api/user/login");
+</script>
+<% } else { %> <%- include('../partials/headerAdmin.ejs') %> <%-
+include('../partials/sidebar.ejs') %>
+<main>
+  <section class="device">
+    <div class="text-head">
+      <h3>UNREGISTERED DEVICE</h3>
+    </div>
+    <form id="form-device">
+      <label for="devid"></label>
+      <input type="text" name="devid" placeholder="Device ID" />
+      <button>Add Unregistered Device</button>
+    </form>
+    <table id="device-table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th style="text-align: left">Devid</th>
+          <th>Status</th>
+          <th>Heart Pulse</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% devices.forEach(function(device, device_index){ %>
+        <tr>
+          <td style="text-align: center"><%= device_index %></td>
+          <td><%= device.devid %></td>
+          <td style="text-align: center"><%= device.status %></td>
+          
+            <% if(device.pulse.length == 0){ %>
+                 <td style="text-align: center"> <%=device.pulse[device.pulse.length - 1]%></td> 
+            <% } else {%>
+                <td style="text-align: center"> 0 </td>
+                <% } %>
+        </td>
+          <td class="action-tbl">
+            <a
+              class="btn-delete fas fa-trash-alt"
+              onclick="deleteUser('<%= device.devid %>')"
+            ></a>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+</main>
+<script>
+  const form = document.getElementById("form-device");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const devid = form.devid.value;
+
+    const res = await fetch("/api/device/add", {
+      method: "POST",
+      body: JSON.stringify({ devid }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await res.json();
+    if (data.status == "success") {
+      location.reload();
+    } else {
+      alert("Gagal Menambahkan Device");
+    }
+  });
+  async function deleteUser(id) {
+    let isDelete = confirm("Apakah anda yakin akan menghapus Device ini?");
+    if (isDelete) {
+      const res = await fetch(`/api/device/delete?devid=${id}`);
+      const data = await res.json();
+      if (data.status == "success") {
+        location.reload();
+      } else {
+        alert("gagal menghapus device");
+      }
+    } else {
+      console.log("no");
+    }
+  }
+</script>
+<% } %>

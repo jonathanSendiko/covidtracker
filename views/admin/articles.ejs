@@ -1,0 +1,180 @@
+<% if(!user) { %>
+    <script>
+        alert("Not Authorized : Please Login!")
+        location.assign('/api/user/login')
+    </script>
+<% } else { %>
+    <%- include('../partials/headerAdmin.ejs') %>  
+    <%- include('../partials/sidebar.ejs') %>
+    
+    <main>
+        <%- include('../partials/newsTabAdmin.ejs') %>
+        <section id="admin_article">
+            <ul class="content" style="display: block;">
+                <div class="text-head">
+                    <h3>TABEL BERITA</h3>
+                    <a href="/api/user/articles/add"><i class="fas fa-user-plus"></i>Tambah</a>
+                </div>
+                <table id="news-table">
+                    <thead>
+                        <tr>
+                            <th>judul</th>
+                            <th>sumber</th>
+                            <th>tanggal</th>
+                            <th>link</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% news.forEach(function(news){ %>
+                            <tr>
+                                <td><%= news.title %> </td>
+                                <td><%= news.src %></td>   
+                                <td><%= news.date %></td>
+                                <td><a href="<%= news.link %>" class="btn-link" target="_new">Lihat</a></td>
+                                <td class="action-tbl">
+                                    <a title="Edit" class="btn-edit fas fa-edit" href="/api/user/articles/edit?type=news&id=<%= news._id %>"></a>
+                                    <a title="Delete" class="btn-delete fas fa-trash-alt" onclick="deleteArticle('news','<%= news._id %>')"></a>
+                                </td>
+                            </tr>
+                        <% }) %> 
+                    </tbody>
+                </table>
+            </ul>
+            <ul class="content" style="display: none;">
+                <div class="text-head">
+                    <h3>TABEL TIPS</h3>
+                    <a href="/api/user/articles/add"><i class="fas fa-user-plus"></i>Tambah</a>
+                </div>
+                <table id="news-table">
+                    <thead>
+                        <tr>
+                            <th>judul</th>
+                            <th>sumber</th>
+                            <th>tanggal</th>
+                            <th>link</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% tips.forEach(function(tips){ %>
+                            <tr>
+                                <td><%= tips.title %> </td>
+                                <td><%= tips.src %></td>   
+                                <td><%= tips.date %></td>
+                                <td><a href="<%= tips.link %>" class="btn-link" target="_new">Lihat</a></td>
+                                <td class="action-tbl">
+                                    <a title="Edit" class="btn-edit fas fa-edit" href="/api/user/articles/edit?type=tips&id=<%= tips._id %>"></a>
+                                    <a title="Delete" class="btn-delete fas fa-trash-alt" onclick="deleteArticle('tips','<%= tips._id %>')"></a>
+                                </td>
+                            </tr>
+                        <% }) %> 
+                    </tbody>
+                </table>
+            </ul>
+            <ul class="content" style="display: none;" id="infowrap">
+                <div class="text-head">
+                    <h3>TABEL INFO</h3>
+                </div>
+                <form action="/api/user/info" method="POST" id="form-info" enctype="multipart/form-data">
+                    <input type="text" name="title" placeholder="Judul" required>
+                    <input type="file" name="image" id="fileImage" size="60" required>
+                    <button>Tambahkan Info</button>
+                </form>
+                <table id="info-table">
+                    <thead>
+                        <tr>
+                            <th>judul</th>
+                            <th>Date</th>
+                            <th>link</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% info.forEach(function(info){ %>
+                            <tr>
+                                <td><%= info.title %> </td>  
+                                <td><%= ((new Date(info.date).getDay()<10)?('0'+new Date(info.date).getDay()):(new Date(info.date).getDay())) + ' - '+ ((new Date(info.date).getMonth()<10)?('0'+new Date(info.date).getMonth()):(new Date(info.date).getMonth()))  + ' - ' + new Date(info.date).getFullYear() %></td>
+                                <td><a href="<%= info.image %>" class="btn-link" target="_new">Lihat</a></td>
+                                <td class="action-tbl">
+                                    <a title="Delete" class="btn-delete fas fa-trash-alt" onclick="deleteInfo('<%= info._id %>')"></a>
+                                </td>
+                            </tr>
+                        <% }) %> 
+                    </tbody>
+                </table>
+            </ul>
+        </section>
+    </main>
+    <script>
+        var tabs = document.querySelectorAll('.tabs ul li')
+        var contents = document.querySelectorAll('.content')
+        // let image = document.getElementById("fileImage").files[0];
+        // let formData = new FormData()
+        // const formInfo = document.getElementById('form-info')
+
+        // formInfo.addEventListener('submit', async(e)=>{
+        //     e.preventDefault()
+
+        //     formData.append("title", formInfo.title.value)
+        //     formData.append("image", image)
+        //     // action="/api/user/info" method="POST"
+        //     const res = await fetch('/api/user/info', {
+        //         method: 'POST',
+        //         body: formData
+        //     })
+        //     const data = await res.json()
+        //     console.log(data)
+        // })
+
+        async function deleteArticle(type, id){
+            let isDelete = confirm("Apakah anda yakin akan menghapus Artikel ini?")
+            const url = `/api/user/articles/delete?id=${id}&type=${type}`
+            if(isDelete){
+                let res = await fetch(url)
+                let data = await res.json()
+                if(data.status == "success"){
+                    location.reload()
+                }else{
+                    alert("Article Not Found")
+                }
+            }else{
+                console.log('no')
+            }
+        }
+
+        async function deleteInfo(id){
+            let isDelete = confirm("Apakah anda yakin akan menghapus Info ini?")
+            const url = `/api/user/info/delete?id=${id}`
+            if(isDelete){
+                let res = await fetch(url)
+                let data = await res.json()
+                if(data.status == "success"){
+                    location.reload()
+                }else{
+                    alert("Info Not Found")
+                }
+            }else{
+                console.log('no')
+            }
+        }
+
+
+
+        tabs.forEach((tab, tab_index)=>{
+            tab.addEventListener("click", ()=>{
+                tabs.forEach((tab)=>{
+                    tab.classList.remove("active")
+                })
+                tab.classList.add("active")
+                contents.forEach((content, content_index)=>{
+                    if(content_index == tab_index){
+                        content.style.display = "block"
+                    }else{
+                        content.style.display = "none"
+                    }
+                })
+            })
+        })
+    </script>
+<% } %> 

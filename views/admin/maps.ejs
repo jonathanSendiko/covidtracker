@@ -1,0 +1,184 @@
+<% if(!user) { %>
+    <script>
+        alert("Not Authorized : Please Login!")
+        location.assign('/api/user/login')
+    </script>
+<% } else { %>
+    <%- include('../partials/headerAdmin.ejs') %>  
+    <%- include('../partials/sidebar.ejs') %>
+    <main>
+        <div class="map_wrap">
+            <div id="fullmap"></div>
+            <button class="widget fas fa-angle-right fa-angle-left" title="Ciutkan Panel Samping"></button>
+            <div class="map_tool">
+                <div class="search_box">
+                    <form action="" id="form-search">
+                        <select name="selector" id="selector">
+                            <option value="devid">Device ID</option>
+                            <option value="nik">NIK</option>
+                        </select>
+                        <input type="text" name="query" class="query" placeholder="Search by Device ID" required>
+                        <button class="fas fa-search"></button>
+                    </form>
+                </div>
+                <div id="search_data">
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', ()=>{
+            let markers = {}
+            let markerLayer = []
+            let widget_btn = document.querySelector('.map_wrap .widget')
+            let widget = document.querySelector('.map_wrap .map_tool')
+            let form = document.getElementById('form-search')
+            let selector = document.querySelector('#selector')
+            let queryInput = document.querySelector('.search_box .query')
+            let searchData = document.getElementById('search_data')
+
+//
+            widget_btn.addEventListener('click', ()=>{
+                widget.classList.toggle("toggle")
+                widget_btn.classList.toggle("fa-angle-right")
+                widget_btn.classList.toggle("toggle")
+            })
+            function onClick(e){
+                    console.log('hai')
+            }
+
+            function showmarkerData(data){
+                // let labelName = ['ID','Device ID', 'Status', 'Alamat', 'Birth', 'Gender', 'Nama', 'NIK', 'Suspect Date']
+                for(let obj in data){
+                    if(obj == '__v' || obj == '_id') continue
+                    let wrap = document.createElement('div')
+                    wrap.classList.add('data_wrap')
+                    let labelData = document.createElement('div')
+                    labelData.classList.add('label')
+                    let dataVal = document.createElement('div')
+                    dataVal.classList.add('value')
+
+                    dataVal.innerHTML = ": " + data[obj]
+                    if(obj == 'devid'){
+                        labelData.innerHTML = "Device ID"
+                    }else if(obj == 'suspectDate'){
+                        labelData.innerHTML = "Suspect Date"
+                    }else{
+                        labelData.innerHTML = obj[0].toUpperCase() + obj.slice(1,obj.length)
+                    }  
+
+                    wrap.append(labelData, dataVal)
+                    searchData.append(wrap)
+                }
+            }
+
+            selector.addEventListener('change', (option)=>{
+                queryInput.value = ''
+                if(option.target.value == 'nik'){
+                    queryInput.setAttribute('placeholder',`Search by ${option.target.value.toUpperCase()}`)
+                }else{
+                    queryInput.setAttribute('placeholder',`Search by Device ID`)
+                }
+            })
+
+            queryInput.addEventListener('change', (option)=>{
+                // if(option.target.value == '') fullmap.removeLayer(markers[markerLayer[0]])
+                // markers[markerLayer[0]] = new L.Marker([obj.lat, obj.long]).on('click', onClick)
+                // fullmap.addLayer(markers[markerLayer[0]])
+                console.log(markerLayer)
+                if(markerLayer[0] != ''){
+                    searchData.innerHTML = ''
+                    fullmap.removeLayer(markers[markerLayer[0]])
+                    markers[markerLayer[0]] = markerLayer[1]
+                    fullmap.addLayer(markers[markerLayer[0]])
+                    markers[markerLayer[0]].bindPopup(`<b>${markerLayer[0]}</b><br><button type="button" onclick="window.location.href='/api/user/maps/log?devid=${markerLayer[0]}'">Go to</button>`)
+                }
+            })
+
+            async function getPosition(){
+                try{    
+                    let res =  await fetch('/api/device/position') 
+                    const data = await res.json()
+
+                    data.forEach((obj)=>{
+                        // console.log(obj)
+                        if(!markers.hasOwnProperty(obj.devid)){
+                            markers[obj.devid] = new L.Marker([obj.lat, obj.long]).on('click', onClick)
+                            fullmap.addLayer(markers[obj.devid])
+                            var circle = L.polygon(obj.area, {
+                                color: 'red',
+                                weight:1,
+                                fillColor: '#f03',
+                                fillOpacity: 0.1,
+                                radius: 1000
+                            }).addTo(fullmap);
+                            markers[obj.devid].bindPopup(`<b>${obj.devid}</b><br><button type="button" onclick="window.location.href='/api/user/maps/log?devid=${obj.devid}'">Go to</button>`)
+                        }else{
+                            markers[obj.devid].setLatLng([obj.lat, obj.long]);
+                        }    
+                    })
+                }catch(err){
+                    console.log(err)
+                }
+            }
+
+            let fullmap = L.map('fullmap').setView([-6.385589, 106.830711],13)
+            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                maxZoom: 18,
+                id: 'mapbox/streets-v11',
+                tileSize: 512,
+                zoomOffset: -1,
+                accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
+            }).addTo(fullmap);
+            var myStyle = {
+               "color": "red",
+               "weight": 3,
+               "opacity": 0.65,
+               "fillOpacity": 0
+            };
+            var jsonTest = new L.GeoJSON.AJAX(["/depok.geojson"], {style:myStyle}).addTo(fullmap);
+            jsonTest.bindPopup("<h3>Depok</h3>")
+
+            form.addEventListener('submit', async (e)=>{
+                e.preventDefault()
+                searchData.innerHTML = ''
+
+                console.log(`${form.selector.value} : ${form.query.value}`)
+                let res = await fetch(`/api/device/position?${form.selector.value}=${form.query.value}`)
+                let data = await res.json()
+                console.log(data.status)
+                if(data.status != undefined) return searchData.innerHTML = "Not Found"
+                const {devid, lat, long} = data.position[0]
+                if(markerLayer[0] != undefined){
+                    fullmap.removeLayer(markers[devid])
+                    fullmap.removeLayer(markers[markerLayer[0]])
+                    markers[markerLayer[0]] = markerLayer[1]
+                    fullmap.addLayer(markers[markerLayer[0]])
+                    markers[markerLayer[0]].bindPopup(`<b>${markerLayer[0]}</b><br><button type="button" onclick="window.location.href='/api/user/maps/log?devid=${markerLayer[0]}'">Go to</button>`)
+                }else{
+                    fullmap.removeLayer(markers[devid])
+                }
+                
+                // console.log(data)
+                let markerIcon = L.AwesomeMarkers.icon({
+                    icon: 'circle',
+                    prefix:'fa',
+                    markerColor: 'red',
+                    iconColor:'white'
+                })
+                console.log(data.device)
+                showmarkerData(data.device)
+                markers[devid] = L.marker([lat,long], {icon:markerIcon})
+                fullmap.addLayer(markers[devid])
+                markers[devid].bindPopup(`<b>${devid}</b><br><button type="button" onclick="window.location.href='/api/user/maps/log?devid=${devid}'">Go to</button>`).openPopup()
+                markerLayer[0] = devid
+                markerLayer[1] = L.marker([lat,long])
+                fullmap.flyTo([lat,long], 17)
+                // console.log(data[0].lat)
+            })
+            setInterval(getPosition, 2000)
+        })
+    </script>
+<% } %> 

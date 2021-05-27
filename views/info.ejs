@@ -1,0 +1,33 @@
+<%- include('./partials/header.ejs') %>
+<section id="info" class="border-shadow">
+    <h2>INFORMASI</h2>
+    <div class="row-list">
+        <ul>
+            <% info.forEach((info)=>{ %> 
+                <li>
+                    <div class="image">
+                        <img class="img-info" src="<%= info.image %>" alt="">
+                        <div class="overlay">
+                            <span><a href="<%= info.image %>" download="<%= info.title %> "><i class="fas fa-download"></i>Unduh</a></span>
+                            <span><a onclick="on('<%= info._id %>')"><i class="fas fa-share"></i>Lihat</a></span>
+                        </div>
+                    </div>    
+                    <p><%= info.title %> </p>
+                </li>
+                <div class="popup-img" id="<%= info._id %>" onclick="off('<%= info._id %>')">
+                    <div class="shadow"></div>
+                    <img src="<%= info.image %>" alt="">
+                </div>
+            <% }) %> 
+        </ul>
+    </div>
+</section>
+<script>
+    function on(id) {
+        document.getElementById(id).style.display = "block";
+    }
+    function off(id) {
+        document.getElementById(id).style.display = "none";
+    }   
+</script>
+<%- include('./partials/footer.ejs') %>

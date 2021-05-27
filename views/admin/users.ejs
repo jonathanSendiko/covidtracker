@@ -1,0 +1,59 @@
+<% if(!user) { %>
+    <script>
+        alert("Not Authorized : Please Login!")
+        location.assign('/api/user/login')
+    </script>
+<% } else { %> 
+    <%- include('../partials/headerAdmin.ejs') %> 
+    <%- include('../partials/sidebar.ejs') %>
+    <main>
+        <section class="users">
+            <div class="text-head">
+                <h3>TABEL USER</h3>
+                <a href="/api/user/signup"><i class="fas fa-user-plus"></i>Tambah</a>
+            </div>
+            <table id="user-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Birth</th>
+                        <th>Level</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(function(user){ %>
+                        <tr>
+                            <td><%= user.name %> </td>
+                            <td><%= user.email %></td>   
+                            <td><%= user.birth %></td>
+                            <td><%= user.level %></td>
+                            <td class="action-tbl">
+                                <a class="btn-edit fas fa-user-edit" href="/api/user/users/edit?id=<%= user._id %>"></a>
+                                <a class="btn-delete fas fa-trash-alt" onclick="deleteUser('<%= user._id %>')"></a>
+                            </td>
+                        </tr>
+                    <% }) %> 
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <script>
+        async function deleteUser(id){
+            let isDelete = confirm("Apakah anda yakin akan menghapus user ini?")
+            const url = `/api/user/users/delete?id=${id}`
+            if(isDelete){
+                let res = await fetch(url)
+                let data = await res.json()
+                if(data.status == "success"){
+                    location.reload()
+                }else{
+                    Alert("User Not Found")
+                }
+            }else{
+                console.log('no')
+            }
+        }
+    </script>
+<% } %> 

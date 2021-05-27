@@ -1,0 +1,178 @@
+<%- include('./partials/header.ejs') %>
+    <div id="index">
+        <h1>Pantau Informasi Pasien COVID-19</h1>
+        <h1>Secara Tepat dan Akurat</h1>
+        <h4>Situs ini merupakan sumber informasi inisiatif sukarela warganet Indonesia pro-data,</h4>
+        <h4>terdiri dari praktisi kesehatan, akademisi & profesional.</h4>
+        <h2 style="margin-top: 30px;margin-bottom: 10px;">Jumlah Kasus Saat Ini</h2>
+        <ul id="covid-case">
+            <li class="box-style positif">
+                <h2><%= covtCase.positif %></h2>
+                <h4>Positif</h4>
+            </li>
+            <li class="box-style dirawat">
+                <h2><%= covtCase.dirawat %></h2>
+                <h4>Di Rawat</h4>
+            </li>
+            <li class="box-style sembuh">
+                <h2><%= covtCase.sembuh %></h2>
+                <h4>Sembuh</h4>
+            </li>
+            <li class="box-style meninggal">
+                <h2><%= covtCase.meninggal %></h2>
+                <h4>Meninggal</h4>
+            </li>
+        </ul>
+        <!-- <div class="chart-container border-shadow" style="height: 300px; margin-top: 30px;">
+            <canvas id="mychart" class="border-shadow" width="100" height="50"></canvas>
+        </div> -->
+        <div class="sebaran">
+            <h2 class="text-sub">DATA SEBARAN</h2>
+            <div class="data-sebaran border-shadow">
+                <div class="isi" >
+                    <h2>Kota Depok</h2>
+                    <hr>
+                    <div class="isi-txt">
+                        <h3>Positif</h3>
+                        <h4><%= covtCase.positif %></h4>
+                        <h3>Dirawat</h3>
+                        <h4><%= covtCase.dirawat %></h4>
+                        <h3>Sembuh</h3>
+                        <h4><%= covtCase.sembuh %></h4>
+                        <h3>Meninggal</h3>
+                        <h4><%= covtCase.meninggal %></h4>
+                    </div>
+                </div>
+                <div id="homeMap" style="height: 400px; width: 80%;"></div>
+            </div>
+        </div>
+        <div class="load-more btn-style"><a href="/sebaran">Simak Tayangan Data langsung</a></div>
+        <div class="news">
+            <h2 class="text-sub">BERITA TERKINI</h2>
+            <ul class="news-list">
+                <% news.forEach((item)=>{ %> 
+                    <li class="border-shadow">
+                        <img src="<%= item.img %>" alt="<%= item.title %>" title="<%= item.title %>">
+                        <div class="list-txt">
+                            <div>
+                                <h5><%= item.date %> </h5>
+                                <p><%= item.title %></p>
+                            </div>
+                            <a href="<%= item.link %>" target="_new">Selengkapnya</a>
+                        </div>
+                    </li>
+                <% }) %> 
+            </ul>
+        </div>
+        <div class="load-more btn-style"><a href="/news">Lihat Berita Lainnya</a></div>
+        <div class="info">
+            <h2 class="text-sub">INFORMASI</h2>
+            <ul class="list-info border-shadow">
+                <% info.forEach((info)=>{ %> 
+                    <li>
+                        <h3><%= info.title %> </h3>
+                        <div class="info-action">
+                            <a href="<%= info.image %> " download="<%= info.title %> "><i class="fas fa-download"></i>Unduh</a>
+                            <a onclick="on('<%= info._id %>')"><i class="fas fa-share"></i>Lihat</a>
+                        </div>
+                        <div class="popup-img" id="<%= info._id %>" onclick="off('<%= info._id %>')">
+                            <div class="shadow"></div>
+                            <img src="<%= info.image %>" alt="">
+                        </div>
+                    </li>
+                <% }) %>
+                
+                <div class="load-more btn-style"><a href="/info">Info Selengkapnya</a></div>
+            </ul>
+        </div>
+        <div class="news">
+            <h2 class="text-sub">TIPS</h2>
+            <ul class="news-list">
+                <% tips.forEach((item)=>{ %> 
+                    <li class="border-shadow">
+                        <img src="<%= item.img %>" alt="<%= item.title %>" title="<%= item.title %>">
+                        <div class="list-txt">
+                            <div>
+                                <h5><%= item.date %> </h5>
+                                <p><%= item.title %></p>
+                            </div>
+                            <a href="<%= item.link %>" target="_new">Selengkapnya</a>
+                        </div>
+                    </li>
+                <% }) %>
+            </ul>
+        </div>
+        <div class="load-more btn-style"><a href="/news">Lihat Tips Lainnya</a></div>
+</div>
+<script src="/leaflet.ajax.js"></script>
+<script>
+    var markers = {}
+
+    function on(id) {
+        document.getElementById(id).style.display = "block";
+    }
+    function off(id) {
+        document.getElementById(id).style.display = "none";
+    }  
+    // var ctx = document.getElementById('mychart').getContext('2d');
+    // var chart = new Chart(ctx, {
+    //     type: 'line',
+    //     data: {
+    //         labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    //         datasets: [{
+    //             label: 'Penyebaran Covid-19',
+    //             backgroundColor: 'rgba(255, 255, 255, 0)',
+    //             borderColor: 'rgb(255, 99, 132)',
+    //             data: [0, 10, 5, 2, 20, 30, 45]
+    //         }]
+    //     },
+    //     options: {
+    //         maintainAspectRatio: false,
+    //     }
+    // });
+
+    async function getPosition(){
+            try{
+                let res =  await fetch('/api/device/position') 
+                const data = await res.json()
+                
+                data.forEach((obj)=>{
+                    if(!markers.hasOwnProperty(obj.devid)){
+                        markers[obj.devid] = new L.Marker([obj.lat, obj.long]).addTo(map);
+                        // var circle = L.circle([obj.homeLat, obj.homeLong], {
+                        //     color: 'red',
+                        //     fillColor: '#f03',
+                        //     fillOpacity: 0.1,
+                        //     radius: 1000
+                        // }).addTo(map);
+                        markers[obj.devid].bindPopup(`<b>${obj.devid}</b>`)
+                    }else{
+                        markers[obj.devid].setLatLng([obj.lat, obj.long]);
+                    }    
+                })
+            }catch(err){
+                console.log(err)
+            }
+        }
+
+    let map = L.map('homeMap').setView([-6.385589, 106.830711],12)
+            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                maxZoom: 18,
+                id: 'mapbox/streets-v11',
+                tileSize: 512,
+                zoomOffset: -1,
+                accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
+            }).addTo(map);
+            var myStyle = {
+               "color": "red",
+               "weight": 3,
+               "opacity": 0.65,
+               "fillOpacity": 0
+            };
+            var jsonTest = new L.GeoJSON.AJAX(["/depok.geojson"], {style:myStyle}).addTo(map);
+            jsonTest.bindPopup("<h3>Kota : Depok</h3>")
+    setInterval(getPosition, 2000)
+</script>
+
+<%- include('./partials/footer.ejs') %> 

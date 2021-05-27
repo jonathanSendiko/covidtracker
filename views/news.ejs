@@ -1,0 +1,52 @@
+<%- include('./partials/header.ejs') %>
+<%- include('./partials/newsTab.ejs') %>
+<section id="articles">
+    <ul class="content" id="news" style="display: block;">
+        <% news.forEach((item)=>{ %> 
+            <li class="content-list border-shadow">
+                <div class="content-txt">
+                    
+                    <a href="<%= item.link %>" class="title"><%= item.title %></a>
+                    <div class="date"><span>Sumber : <%= item.src %></span><%= item.date %> </div>
+                    <div class="body"><%= item.body %> </div>
+                    <a href="<%= item.link %> ">Baca Selengkapnya</a>
+                </div>
+                <img src="<%= item.img %> " alt="">
+            </li>
+        <% }) %> 
+    </ul>
+    <ul class="content" id="tips" style="display: none;">
+        <% tips.forEach((item)=>{ %> 
+            <li class="content-list border-shadow">
+                <div class="content-txt">
+                    <a href="<%= item.link %>" class="title"><%= item.title %></a>
+                    <div class="date"><span>Sumber : <%= item.src %></span><%= item.date %> </div>
+                    <div class="body"><%= item.body %> </div>
+                    <a href="<%= item.link %> ">Baca Selengkapnya</a>
+                </div>
+                <img src="<%= item.img %> " alt="">
+            </li>
+        <% }) %> 
+    </ul>
+</section>
+<script>
+    var tabs = document.querySelectorAll('.tabs ul li')
+    var contents = document.querySelectorAll('.content')
+
+    tabs.forEach((tab, tab_index)=>{
+        tab.addEventListener("click", ()=>{
+            tabs.forEach((tab)=>{
+                tab.classList.remove("active")
+            })
+            tab.classList.add("active")
+            contents.forEach((content, content_index)=>{
+                if(content_index == tab_index){
+                    content.style.display = "block"
+                }else{
+                    content.style.display = "none"
+                }
+            })
+        })
+    })
+</script>
+<%- include('./partials/footer.ejs') %>
