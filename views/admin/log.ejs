@@ -1,187 +1,215 @@
 <% if(!user) { %>
-    <script>
-        alert("Not Authorized : Please Login!")
-        location.assign('/api/user/login')
-    </script>
-<% } else { %>
-    <%- include('../partials/headerAdmin.ejs') %> 
-    <%- include('../partials/sidebar.ejs') %>
-    <main>
-        <div class="map_wrap">
-            <div id="fullmap"></div>
-            <button class="widget fas fa-angle-right fa-angle-left" title="Ciutkan Panel Samping"></button>
-            <div class="map_tool">
-                <div class="search_box">
-                    <form action="" id="form-log">
-                        <div class="log-wrapper">
-                            <div class="query">
-                                <label for="start">Start</label>
-                                <input type="date" name="start" required>
-                            </div>
-                            <div class="query">
-                                <label for="to">To</label>
-                                <input type="date" name="to">
-                            </div>
-                        </div>
-                        <button><i class="fas fa-search"></i></button>
-                    </form>
-                </div>
-                <div id="history-data">
-                </div>
+<script>
+  alert("Not Authorized : Please Login!");
+  location.assign("/api/user/login");
+</script>
+<% } else { %> <%- include('../partials/headerAdmin.ejs') %> <%-
+include('../partials/sidebar.ejs') %>
+<main>
+  <div class="map_wrap">
+    <div id="fullmap"></div>
+    <button
+      class="widget fas fa-angle-right fa-angle-left"
+      title="Ciutkan Panel Samping"
+    ></button>
+    <div class="map_tool">
+      <div class="search_box">
+        <form action="" id="form-log">
+          <div class="log-wrapper">
+            <div class="query">
+              <label for="start">Start</label>
+              <input type="date" name="start" required />
             </div>
-        </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', ()=>{
-            let params = new URLSearchParams(window.location.search);
-            let devid = params.get('devid')
-            let url = `/api/device/log?devid=${devid}`
-            let formLog = document.getElementById('form-log')
-            let historyData = document.getElementById('history-data')
-            let widget_btn = document.querySelector('.map_wrap .widget')
-            let widget = document.querySelector('.map_wrap .map_tool')
-            widget_btn.addEventListener('click', ()=>{
-                widget.classList.toggle("toggle")
-                widget_btn.classList.toggle("fa-angle-right")
-                widget_btn.classList.toggle("toggle")
-            })
+            <div class="query">
+              <label for="to">To</label>
+              <input type="date" name="to" />
+            </div>
+          </div>
+          <button><i class="fas fa-search"></i></button>
+        </form>
+      </div>
+      <div id="history-data"></div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let params = new URLSearchParams(window.location.search);
+      let devid = params.get("devid");
+      let url = `/api/device/log?devid=${devid}`;
+      let formLog = document.getElementById("form-log");
+      let historyData = document.getElementById("history-data");
+      let widget_btn = document.querySelector(".map_wrap .widget");
+      let widget = document.querySelector(".map_wrap .map_tool");
+      widget_btn.addEventListener("click", () => {
+        widget.classList.toggle("toggle");
+        widget_btn.classList.toggle("fa-angle-right");
+        widget_btn.classList.toggle("toggle");
+      });
 
-            function getTime(epoch){
-               let data = new Date(epoch)
-               let arr = data.toString().split(' ')
-               let time = arr[4].split(':')
-               return {date:`${arr[2]} ${arr[1]} ${arr[3]}`, time: `${time[0]}:${time[1]}`}
+      function getTime(epoch) {
+        let data = new Date(epoch);
+        let arr = data.toString().split(" ");
+        let time = arr[4].split(":");
+        return {
+          date: `${arr[2]} ${arr[1]} ${arr[3]}`,
+          time: `${time[0]}:${time[1]}`,
+        };
+      }
+
+      function showLogData(arr) {
+        historyData.innerHTML = "";
+        arr.forEach((obj) => {
+          let history_wrap = document.createElement("div");
+          let time_log = document.createElement("div");
+          let log_data = document.createElement("div");
+          let latlong = document.createElement("div");
+          let timeLog = document.createElement("div");
+          let pulseLog = document.createElement("div");
+
+          history_wrap.classList.add("history-wrap");
+          history_wrap.setAttribute("id", obj.timestamp);
+          time_log.classList.add("time-log");
+          log_data.classList.add("log-data");
+          latlong.classList.add("loc");
+          timeLog.classList.add("time");
+          pulseLog.classList.add("pulse");
+
+          time_log.innerHTML = getTime(obj.timestamp).date;
+          latlong.innerHTML = `Lat : ${obj.lat}, Long : ${obj.long}`;
+          timeLog.innerHTML = getTime(obj.timestamp).time;
+          if (obj.pulse != null) {
+            pulseLog.innerHTML = `Pulse : ${obj.pulse}`;
+          }
+          log_data.append(latlong, timeLog, pulseLog);
+          history_wrap.append(time_log, log_data);
+          historyData.append(history_wrap);
+
+          let logClick = document.getElementById(obj.timestamp.toString());
+
+          logClick.addEventListener("click", () => {
+            markers[obj.timestamp].openPopup();
+          });
+        });
+      }
+
+      formLog.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        let from = Date.parse(formLog.start.value);
+        let to = Date.parse(formLog.to.value);
+
+        if (from != NaN) {
+          if (to != NaN) {
+            url = `/api/device/log?devid=${devid}&from=${
+              from - 1000 * 60 * 60 * 7
+            }&to=${to - 1000 * 60 * 60 * 7}`;
+          } else {
+            url = `/api/device/log?devid=${devid}&from=${
+              from - 1000 * 60 * 60 * 7
+            }&to=${Date.now()}`;
+          }
+        }
+
+        // let res =  await fetch(url)
+        // const data = await res.json()
+        getPosition(url);
+        // console.log(data)
+      });
+      // const form = document.querySelector('form');
+      // form.addEventListener('submit', async (e)=>{
+      //     e.preventDefault()
+      //     const from = Date.parse(form.from.value)
+      //     const to = Date.parse(form.to.value)
+      //     url = `http://localhost:3001/api/device/log?devid=${devid}&from=${from}&to=${to}`
+      //     getPosition()
+      //     console.log(from)
+      // })
+      // let coord = {lat:0,long:0}
+
+      let markers = {};
+
+      async function getPosition(url) {
+        if (markers) {
+          for (prop in markers) {
+            fullmap.removeLayer(markers[prop]);
+          }
+          markers = {};
+        }
+        let latLngs = [];
+
+        if (markers["polyline"]) fullmap.removeLayer(markers["polyline"]);
+        try {
+          let res = await fetch(url);
+          const data = await res.json();
+          if (data.length == 0) {
+            alert("no history");
+            historyData.innerHTML = "No History";
+            // location.reload()
+          }
+
+          showLogData(data);
+          // coord = {lat:data[0].homeLat,long:data[0].homeLong}
+          data.forEach((obj) => {
+            latLngs.push([obj.lat, obj.long]);
+
+            if (!markers.hasOwnProperty(obj.timestamp)) {
+              markers[obj.timestamp] = new L.Marker([obj.lat, obj.long]);
+              fullmap.addLayer(markers[obj.timestamp]);
+              // var circle = L.polygon(obj.area, {
+              //     color: 'red',
+              //     weight:1,
+              //     fillColor: '#f03',
+              //     fillOpacity: 0.1,
+              //     radius: 1000
+              // }).addTo(fullmap);
+              markers[obj.timestamp].bindPopup(
+                `<b>${getTime(obj.timestamp).date}</b><br><b>${
+                  getTime(obj.timestamp).time
+                }</b><br><button type="button" onclick="window.location.href='/api/user/maps/log?devid=${
+                  obj.devid
+                }'">Go to</button>`
+              );
+            } else {
+              markers[obj.timestamp].setLatLng([obj.lat, obj.long]);
             }
-
-
-            function showLogData(arr){
-                historyData.innerHTML = ''
-                arr.forEach((obj)=>{
-                    let history_wrap = document.createElement('div')
-                    let time_log = document.createElement('div')
-                    let log_data = document.createElement('div')
-                    let latlong = document.createElement('div')
-                    let timeLog = document.createElement('div')
-
-                    history_wrap.classList.add('history-wrap')
-                    history_wrap.setAttribute('id',obj.timestamp)
-                    time_log.classList.add('time-log')
-                    log_data.classList.add('log-data')
-                    latlong.classList.add('loc')
-                    timeLog.classList.add('time')
-
-                    time_log.innerHTML = getTime(obj.timestamp).date
-                    latlong.innerHTML = `Lat : ${obj.lat}, Long : ${obj.long}`
-                    timeLog.innerHTML = getTime(obj.timestamp).time
-
-                    log_data.append(latlong,timeLog)
-                    history_wrap.append(time_log,log_data)
-                    historyData.append(history_wrap)
-
-                    let logClick = document.getElementById(obj.timestamp.toString())
-
-                    logClick.addEventListener('click', ()=>{
-                        markers[obj.timestamp].openPopup()
-                    })
-                })
-            }
-
-
-            formLog.addEventListener('submit', async (e)=>{
-                e.preventDefault()
-                let from = Date.parse(formLog.start.value)
-                let to = Date.parse(formLog.to.value)
-
-                if(from != NaN){
-                    if(to != NaN){
-                        url = `/api/device/log?devid=${devid}&from=${from-(1000*60*60*7)}&to=${to-(1000*60*60*7)}`
-                    }else{
-                        url = `/api/device/log?devid=${devid}&from=${from-(1000*60*60*7)}&to=${Date.now()}`
-                    }
-                }
-                
-                // let res =  await fetch(url) 
-                // const data = await res.json()
-                getPosition(url)
-                // console.log(data)
-            })
-            // const form = document.querySelector('form');
-            // form.addEventListener('submit', async (e)=>{
-            //     e.preventDefault()
-            //     const from = Date.parse(form.from.value)
-            //     const to = Date.parse(form.to.value)
-            //     url = `http://localhost:3001/api/device/log?devid=${devid}&from=${from}&to=${to}`
-            //     getPosition()
-            //     console.log(from)
-            // })
-            // let coord = {lat:0,long:0}
-
-            let markers = {}
-            
-            async function getPosition(url){
-                if(markers){
-                    for(prop in markers){
-                        fullmap.removeLayer(markers[prop])
-                    }
-                    markers = {}
-                }
-                let latLngs = []
-
-                if(markers['polyline']) fullmap.removeLayer(markers['polyline'])
-                try{
-                    let res =  await fetch(url) 
-                    const data = await res.json()
-                    if(data.length == 0){
-                        alert('no history')
-                        historyData.innerHTML = "No History"
-                        // location.reload()
-                    }
-                    
-                    showLogData(data)
-                    // coord = {lat:data[0].homeLat,long:data[0].homeLong}
-                    data.forEach((obj)=>{
-                        latLngs.push([obj.lat,obj.long])
-
-                        if(!markers.hasOwnProperty(obj.timestamp)){
-                            markers[obj.timestamp] = new L.Marker([obj.lat, obj.long])
-                            fullmap.addLayer(markers[obj.timestamp])
-                            // var circle = L.polygon(obj.area, {
-                            //     color: 'red',
-                            //     weight:1,
-                            //     fillColor: '#f03',
-                            //     fillOpacity: 0.1,
-                            //     radius: 1000
-                            // }).addTo(fullmap);
-                            markers[obj.timestamp].bindPopup(`<b>${getTime(obj.timestamp).date}</b><br><b>${getTime(obj.timestamp).time}</b><br><button type="button" onclick="window.location.href='/api/user/maps/log?devid=${obj.devid}'">Go to</button>`)
-                        }else{
-                            markers[obj.timestamp].setLatLng([obj.lat, obj.long]);
-                        }  
-                    })
-                    markers['polyline'] = L.polyline(latLngs, {color: 'red', fillColor:'#fff', fillOpacity:0})
-                    fullmap.addLayer(markers['polyline'])
-                    fullmap.fitBounds(markers['polyline'].getBounds());
-                }catch(err){
-                    console.log(err)
-                }
-            }
-            let fullmap = L.map('fullmap').setView([-6.385589, 106.830711],13)
-            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-                maxZoom: 18,
-                id: 'mapbox/streets-v11',
-                tileSize: 512,
-                zoomOffset: -1,
-                accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
-            }).addTo(fullmap);
-            var myStyle = {
-               "color": "red",
-               "weight": 3,
-               "opacity": 0.65,
-               "fillOpacity": 0
-            };
-            var jsonTest = new L.GeoJSON.AJAX(["/depok.geojson"], {style:myStyle}).addTo(fullmap);
-            jsonTest.bindPopup("<h3>Depok</h3>")
-            getPosition(url)
-            // setInterval(getPosition,2000)
-        })
-    </script>
-<% } %> 
+          });
+          markers["polyline"] = L.polyline(latLngs, {
+            color: "red",
+            fillColor: "#fff",
+            fillOpacity: 0,
+          });
+          fullmap.addLayer(markers["polyline"]);
+          fullmap.fitBounds(markers["polyline"].getBounds());
+        } catch (err) {
+          console.log(err);
+        }
+      }
+      let fullmap = L.map("fullmap").setView([-6.385589, 106.830711], 13);
+      L.tileLayer(
+        "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}",
+        {
+          attribution:
+            'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+          maxZoom: 18,
+          id: "mapbox/streets-v11",
+          tileSize: 512,
+          zoomOffset: -1,
+          accessToken:
+            "pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
+        }
+      ).addTo(fullmap);
+      var myStyle = {
+        color: "red",
+        weight: 3,
+        opacity: 0.65,
+        fillOpacity: 0,
+      };
+      var jsonTest = new L.GeoJSON.AJAX(["/depok.geojson"], {
+        style: myStyle,
+      }).addTo(fullmap);
+      jsonTest.bindPopup("<h3>Depok</h3>");
+      getPosition(url);
+      // setInterval(getPosition,2000)
+    });
+  </script>
+  <% } %>
+</main>

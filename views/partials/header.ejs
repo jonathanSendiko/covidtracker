@@ -1,22 +1,22 @@
-<input type="checkbox" name="checkbox" id="check" checked>
+<input type="checkbox" name="checkbox" id="check" checked />
 <script>
-  $(document).ready(function(){
-    $(".profile_nav .icon_wrap").click(function(){
+  $(document).ready(function () {
+    $(".profile_nav .icon_wrap").click(function () {
       $(this).parent().toggleClass("active");
       $(".notification").removeClass("active");
     });
 
-    $(".notification .icon_wrap").click(function(){
+    $(".notification .icon_wrap").click(function () {
       $(this).parent().toggleClass("active");
-       $(".profile_nav").removeClass("active");
+      $(".profile_nav").removeClass("active");
     });
 
-    $(".show_all .link").click(function(){
+    $(".show_all .link").click(function () {
       $(".notification").removeClass("active");
       $(".popup").show();
     });
 
-    $(".close").click(function(){
+    $(".close").click(function () {
       $(".popup").hide();
     });
   });
@@ -34,151 +34,160 @@
   </ul>
   <div class="right_side">
     <% if(user) { %>
-      <div class="notification">
-        <div class="icon_wrap"><i class="far fa-bell"></i><span class="counter"></span></div>
-        <div class="notification_dd">
-          <ul>
-            <li class="show_all">
-              <p class="link">Show All Activities</p>
-          </li> 
-          </ul>
-        </div>
+    <div class="notification">
+      <div class="icon_wrap">
+        <i class="far fa-bell"></i><span class="counter"></span>
       </div>
-      <div class="profile_nav">
-        <div class="icon_wrap">
-          <img src="/profile.png" alt="profile_pic">
-          <span class="name"><%= user.name %></span>
-          <i class="fas fa-chevron-down"></i>
-        </div>
-
-        <div class="profile_dd">
-          <ul class="profile_ul">
-            <li>
-              <a href="/api/user/dashboard">
-                <span class="picon">
-                  <i class="fas fa-desktop"></i>
-                </span>
-                Dashboard
-              </a>
-            </li>
-            <li>
-              <a href="/api/user/logout" class="logout">
-                <span class="picon">
-                  <i class="fas fa-sign-out-alt"></i>
-                </span>
-                Logout
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    <% } else { %> 
-      <div><a class="login_btn btn-style" href="/api/user/login">Login</a></div>
-    <% } %> 
-    </div>
-</nav>
-<% if(user){ %>
-  <div class="popup">
-    <div class="shadow"></div>
-    <div class="inner_popup">
       <div class="notification_dd">
-        <ul class="notification_ul">
-          <li class="title">
-            <p>All Notification</p>
-            <p class="close"><i class="fas fa-times" aria-hidden="
-              true"></i></p>
+        <ul>
+          <li class="show_all">
+            <p class="link">Show All Activities</p>
           </li>
         </ul>
       </div>
     </div>
+    <div class="profile_nav">
+      <div class="icon_wrap">
+        <img src="/profile.png" alt="profile_pic" />
+        <span class="name"><%= user.name %></span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+
+      <div class="profile_dd">
+        <ul class="profile_ul">
+          <li>
+            <a href="/api/user/dashboard">
+              <span class="picon">
+                <i class="fas fa-desktop"></i>
+              </span>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="/api/user/logout" class="logout">
+              <span class="picon">
+                <i class="fas fa-sign-out-alt"></i>
+              </span>
+              Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <% } else { %>
+    <div><a class="login_btn btn-style" href="/api/user/login">Login</a></div>
+    <% } %>
   </div>
-  <script>
-     const socket = io()
-  let notif = document.querySelector('.notification_dd ul')
-  let popupNotif = document.querySelector('.popup .notification_dd .notification_ul')
-  let counter = document.querySelector('.icon_wrap .counter')
-  let notification = document.querySelector('.notification .icon_wrap')
+</nav>
+<% if(user){ %>
+<div class="popup">
+  <div class="shadow"></div>
+  <div class="inner_popup">
+    <div class="notification_dd">
+      <ul class="notification_ul">
+        <li class="title">
+          <p>All Notification</p>
+          <p class="close">
+            <i
+              class="fas fa-times"
+              aria-hidden="
+              true"
+            ></i>
+          </p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+<script>
+  const socket = io();
+  let notif = document.querySelector(".notification_dd ul");
+  let popupNotif = document.querySelector(
+    ".popup .notification_dd .notification_ul"
+  );
+  let counter = document.querySelector(".icon_wrap .counter");
+  let notification = document.querySelector(".notification .icon_wrap");
 
-  notification.addEventListener('click', ()=>{
-    socket.emit('clear')
-  })
-
-
-function getTime(epoch){
-    let data = new Date(epoch)
-    let arr = data.toString().split(' ')
-    let time = arr[4].split(':')
-    return {date:`${arr[2]} ${arr[1]} ${arr[3]}`, time: `${time[0]}:${time[1]}`}
-  }
-
-function appendNotif(item){
-  let notifList = document.createElement('li')
-  const timestamp = getTime(item.timestamp)
-  let notifData = document.createElement('div')
-  notifData.className = "notif_data"
-  let title = document.createElement('div')
-  title.className = "title"
-  title.innerHTML = item.title
-  let body = document.createElement('div')
-  body.className = "body"
-  body.innerHTML = item.body
-  let date = document.createElement('div')
-  date.className = "date"
-  let date_txt = document.createElement('div')
-  date_txt.className = "date_txt"
-  date_txt.innerHTML = timestamp.date
-  let time = document.createElement('div')
-  time.className = "time"
-  time.innerHTML = timestamp.time
-  date.append(date_txt, time)
-  notifData.append(title, body, date)
-  notifList.append(notifData)
-
-  return notifList
-}
-
-  async function getNotify(){
-    let notifArr = []
-    
-
-
-    let res = await fetch('/api/user/notification')
-    let data = await res.json()
-    for(const obj in data.data){
-      notifArr.push(data.data[obj])
-    }
-
-    
-    let notifInit = notifArr.reverse().slice(0,4)
-    notifInit.reverse().forEach((item)=>{
-      notif.insertBefore(appendNotif(item), notif.childNodes[0])
-    })
-
-    notifArr.forEach((item)=>{
-      popupNotif.append(appendNotif(item))
-    })
-  }
-
-  getNotify()
-
-
-  socket.on('init', (message) => {
-    // console.log(message.counter)
-    counter.innerHTML = message.counter
+  notification.addEventListener("click", () => {
+    socket.emit("clear");
   });
 
-  socket.on('clear', (message)=>{
-    counter.innerHTML = message.counter
-  })
+  function getTime(epoch) {
+    let data = new Date(epoch);
+    let arr = data.toString().split(" ");
+    let time = arr[4].split(":");
+    return {
+      date: `${arr[2]} ${arr[1]} ${arr[3]}`,
+      time: `${time[0]}:${time[1]}`,
+    };
+  }
 
-  socket.on('notif', (notification)=>{
+  function appendNotif(item) {
+    let notifList = document.createElement("li");
+    const timestamp = getTime(item.timestamp);
+    let notifData = document.createElement("div");
+    notifData.className = "notif_data";
+    let title = document.createElement("div");
+    title.className = "title";
+    title.innerHTML = item.title;
+    let body = document.createElement("div");
+    body.className = "body";
+    body.innerHTML = item.body;
+    let date = document.createElement("div");
+    date.className = "date";
+    let date_txt = document.createElement("div");
+    date_txt.className = "date_txt";
+    date_txt.innerHTML = timestamp.date;
+    let time = document.createElement("div");
+    time.className = "time";
+    time.innerHTML = timestamp.time;
+    date.append(date_txt, time);
+    notifData.append(title, body, date);
+    notifList.append(notifData);
+
+    return notifList;
+  }
+
+  async function getNotify() {
+    let notifArr = [];
+    let res = await fetch("/api/user/notification");
+    let data = await res.json();
+    for (const obj in data.data) {
+      notifArr.push(data.data[obj]);
+    }
+
+    let notifInit = notifArr.reverse().slice(0, 4);
+    notifInit.reverse().forEach((item) => {
+      notif.insertBefore(appendNotif(item), notif.childNodes[0]);
+    });
+
+    notifArr.forEach((item) => {
+      popupNotif.append(appendNotif(item));
+    });
+  }
+
+  getNotify();
+
+  socket.on("init", (message) => {
+    // console.log(message.counter)
+    counter.innerHTML = message.counter;
+  });
+
+  socket.on("clear", (message) => {
+    counter.innerHTML = message.counter;
+  });
+
+  socket.on("notif", (notification) => {
     // console.log(notification)
-    notif.removeChild(notif.childNodes[1])
-    
-      popupNotif.insertBefore(appendNotif(notification.notif), popupNotif.childNodes[2])
-      notif.insertBefore(appendNotif(notification.notif), notif.childNodes[0])
+    notif.removeChild(notif.childNodes[1]);
 
-    counter.innerHTML = notification.counter
-  })
-    </script>
-<% } %>  
+    popupNotif.insertBefore(
+      appendNotif(notification.notif),
+      popupNotif.childNodes[2]
+    );
+    notif.insertBefore(appendNotif(notification.notif), notif.childNodes[0]);
+
+    counter.innerHTML = notification.counter;
+  });
+</script>
+<% } %>

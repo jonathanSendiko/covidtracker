@@ -76,7 +76,16 @@ deviceSchema.statics.register = async function ({
 }) {
   const device = await this.findOneAndUpdate(
     { devid },
-    { name, nik, birth, gender, address, suspectDate, status: "registered", pulse:[] },
+    {
+      name,
+      nik,
+      birth,
+      gender,
+      address,
+      suspectDate,
+      status: "registered",
+      pulse: [],
+    },
     { new: true }
   );
   if (device) {
@@ -94,10 +103,11 @@ deviceSchema.statics.updateDevice = async function ({
   gender,
   address,
   suspectDate,
+  pulse,
 }) {
   const device = await this.findOneAndUpdate(
     { devid },
-    { name, nik, birth, gender, address, suspectDate },
+    { name, nik, birth, gender, address, suspectDate, pulse },
     { new: true }
   );
   if (device) {

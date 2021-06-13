@@ -8,6 +8,7 @@ router.get("/", checkAuth, deviceController.device_get);
 router.post("/register", checkAuth, deviceController.register_post);
 router.get("/position", deviceController.position_get);
 router.get("/log", checkAuth, deviceController.log_get);
+router.post("/log", deviceController.log_post);
 router.get("/unregister", checkAuth, deviceController.unregister_get);
 router.post("/update", checkAuth, deviceController.update_post);
 router.get("/delete", checkAuth, deviceController.delete_get);

@@ -187,3 +187,14 @@ module.exports.log_get = async (req, res) => {
 //     const data = await Logger.deleteMany(filter)
 //     res.status(200).json(data)
 // }
+
+module.exports.log_post = async (req, res) => {
+  const { devid, lat, long, pulse } = req.body;
+  const device = await Logger.logPos({
+    devid,
+    lat,
+    long,
+    pulse,
+  });
+  res.status(201).json(device);
+};
