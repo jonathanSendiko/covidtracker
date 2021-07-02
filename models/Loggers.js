@@ -17,6 +17,7 @@ const logSchema = new mongoose.Schema({
     require: true,
     min: 1,
   },
+  // menambahkan metrics pulse
   pulse: {
     type: String,
     required: true,

@@ -163,6 +163,7 @@ antaresClient.on("message", async (topic, message) => {
         });
         const distance = geolib.getPreciseDistance(coords.start, coords.end);
 
+        //logPosition ditambahkan pulse setelah melewati distance tertentu
         if (distance >= 15) {
           try {
             console.log("logging");

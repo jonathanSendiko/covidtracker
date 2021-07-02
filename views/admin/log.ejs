@@ -80,6 +80,7 @@ include('../partials/sidebar.ejs') %>
           if (obj.pulse != null) {
             pulseLog.innerHTML = `Pulse : ${obj.pulse}`;
           }
+          //Menambahkan data yang didapatkan dari Antares
           log_data.append(latlong, timeLog, pulseLog);
           history_wrap.append(time_log, log_data);
           historyData.append(history_wrap);

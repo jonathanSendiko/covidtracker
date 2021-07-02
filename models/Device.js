@@ -34,6 +34,7 @@ const deviceSchema = new mongoose.Schema({
     enum: ["registered", "unregistered"],
     required: true,
   },
+  //Penambahan Metrics Pulse
   pulse: [
     {
       type: Number,

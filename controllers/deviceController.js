@@ -102,6 +102,7 @@ module.exports.unregister_get = async (req, res) => {
   }
 };
 
+//Testing penambahan pulse pada device
 module.exports.pulse_post = async (req, res) => {
   const { devid } = req.query;
   const { pulse } = req.body;
@@ -188,6 +189,7 @@ module.exports.log_get = async (req, res) => {
 //     res.status(200).json(data)
 // }
 
+//Post New Log ditambahkan pulse
 module.exports.log_post = async (req, res) => {
   const { devid, lat, long, pulse } = req.body;
   const device = await Logger.logPos({
